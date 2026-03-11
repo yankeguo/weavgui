@@ -12,6 +12,8 @@ from .utils import clamp, coordinate_system_lines
 
 __all__ = ["capture"]
 
+SCREENSHOT_OUTPUT = "screenshot.png"
+
 RED = (255, 0, 0)
 GREEN = (0, 180, 0)
 BLUE = (0, 102, 255)
@@ -22,7 +24,8 @@ LINE_WIDTH = 2
 BOX_LINE_WIDTH = 2
 
 
-def capture(output: str, without_cursor: bool) -> None:
+def capture(output: str = SCREENSHOT_OUTPUT) -> None:
+    """Capture the primary display to a PNG file with cursor markers drawn."""
     output_path = Path(output).expanduser()
     if output_path.suffix.lower() != ".png":
         raise click.ClickException("Output file must use .png extension.")
@@ -31,29 +34,27 @@ def capture(output: str, without_cursor: bool) -> None:
         image = _grab_primary_monitor()
         image = _to_logical_resolution(image)
 
-        if not without_cursor:
-            cursor = pyautogui.position()
-            cursor_x = clamp(int(cursor.x), 0, image.width - 1)
-            cursor_y = clamp(int(cursor.y), 0, image.height - 1)
-            _draw_markers(image, cursor_x, cursor_y)
+        cursor = pyautogui.position()
+        cursor_x = clamp(int(cursor.x), 0, image.width - 1)
+        cursor_y = clamp(int(cursor.y), 0, image.height - 1)
+        _draw_markers(image, cursor_x, cursor_y)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(output_path, format="PNG")
         click.echo(f"Screenshot saved to: {output_path}")
 
-        if not without_cursor:
-            click.echo(
-                "\n".join(
-                    [
-                        "Cursor marker details:",
-                        *coordinate_system_lines(),
-                        f"- Crosshair center (mouse position): ({cursor_x}, {cursor_y}).",
-                        f"- Small box: {SMALL_BOX_DISTANCE * 2}x{SMALL_BOX_DISTANCE * 2}px, color red, radius {SMALL_BOX_DISTANCE}.",
-                        f"- Medium box: {MEDIUM_BOX_DISTANCE * 2}x{MEDIUM_BOX_DISTANCE * 2}px, color green, radius {MEDIUM_BOX_DISTANCE}.",
-                        f"- Large box: {LARGE_BOX_DISTANCE * 2}x{LARGE_BOX_DISTANCE * 2}px, color blue, radius {LARGE_BOX_DISTANCE}.",
-                    ]
-                )
+        click.echo(
+            "\n".join(
+                [
+                    "Cursor marker details:",
+                    *coordinate_system_lines(),
+                    f"- Crosshair center (mouse position): ({cursor_x}, {cursor_y}).",
+                    f"- Small box: {SMALL_BOX_DISTANCE * 2}x{SMALL_BOX_DISTANCE * 2}px, color red, radius {SMALL_BOX_DISTANCE}.",
+                    f"- Medium box: {MEDIUM_BOX_DISTANCE * 2}x{MEDIUM_BOX_DISTANCE * 2}px, color green, radius {MEDIUM_BOX_DISTANCE}.",
+                    f"- Large box: {LARGE_BOX_DISTANCE * 2}x{LARGE_BOX_DISTANCE * 2}px, color blue, radius {LARGE_BOX_DISTANCE}.",
+                ]
             )
+        )
     except click.ClickException:
         raise
     except Exception as exc:  # pragma: no cover - system dependent failures

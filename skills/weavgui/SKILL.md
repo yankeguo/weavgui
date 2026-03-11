@@ -22,6 +22,21 @@ weavgui --version
 
 ---
 
+## Auto-Screenshot Behavior
+
+Every action command automatically captures a screenshot to **`screenshot.png`** in the current working directory after a short delay. You never need to pass output paths or screenshot flags.
+
+| Command | Auto-screenshot delay |
+|---|---|
+| `screenshot` | immediate |
+| `mouse move`, `mouse moveto` | 500 ms |
+| `mouse click`, `doubleclick`, `rightclick` | 2 s |
+| `keystroke` | 1 s |
+
+After each command, read `screenshot.png` as an image to observe the current state of the screen.
+
+---
+
 ## Coordinate System
 
 All mouse and screenshot commands share the same coordinate space:
@@ -37,11 +52,10 @@ All mouse and screenshot commands share the same coordinate space:
 ### Screenshot
 
 ```bash
-weavgui screenshot -o <path.png>             # with cursor markers
-weavgui screenshot -o <path.png> --without-cursor  # clean screenshot
+weavgui screenshot
 ```
 
-Default screenshot draws cursor markers at the current mouse position:
+Always saves to `screenshot.png` in the current working directory. Always draws cursor markers:
 
 - Red crosshair lines
 - Red small box (100×100 px, radius 50)
@@ -62,18 +76,18 @@ The command also prints the current mouse coordinates and display bounds to stdo
 ### Mouse Move
 
 ```bash
-weavgui mouse move '(dx,dy)' [--screenshot PATH]
+weavgui mouse move '(dx,dy)'
 ```
 
-Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout. Optional `-s` / `--screenshot PATH`: after moving, save a screenshot to PATH (same format as `screenshot -o`); saves one CLI call in positioning loops.
+Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. Prints the start position, end position, and display bounds to stdout. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
 
 ### Mouse Move To
 
 ```bash
-weavgui mouse moveto '(x,y)' [--screenshot PATH]
+weavgui mouse moveto '(x,y)'
 ```
 
-Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds. Optional `-s` / `--screenshot PATH`: after moving, save a screenshot to PATH; saves one CLI call in positioning loops.
+Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
 
 ### Mouse Click
 
@@ -83,7 +97,7 @@ weavgui mouse doubleclick   # double left click
 weavgui mouse rightclick    # right click
 ```
 
-All clicks happen at the **current cursor position**.
+All clicks happen at the **current cursor position**. A screenshot is automatically saved to `screenshot.png` after a 2 s delay to allow the UI to settle.
 
 ### Keystroke
 
@@ -92,6 +106,8 @@ weavgui keystroke <keys>
 ```
 
 Examples: `c`, `ctrl+c`, `command+c`, `shift+a`, `command+z`
+
+A screenshot is automatically saved to `screenshot.png` after a 1 s delay.
 
 ### Pasteboard
 
@@ -109,18 +125,18 @@ weavgui pasteboard read              # read from clipboard
 `mouse move` accepts only relative deltas; `mouse moveto` accepts absolute coordinates but you still need to know the target pixel position. The correct approach is an **iterative positioning loop**:
 
 ```
-screenshot → analyze image → move mouse → screenshot → analyze image → move mouse → ... → click
+screenshot → analyze image → move mouse → (auto-screenshot) → analyze image → move mouse → ... → click
 ```
 
 ### Step-by-step
 
-1. **Take a screenshot** and load the image into context:
+1. **Take a screenshot** and read the image into context:
 
    ```bash
-   weavgui screenshot -o /tmp/screen.png
+   weavgui screenshot
    ```
 
-   Then read `/tmp/screen.png` as an image attachment.
+   Then read `screenshot.png` as an image attachment.
 
 2. **Analyze the screenshot**: Identify the target UI element. Read the cursor marker position from the stdout output (printed automatically). Use the three reference boxes to gauge your delta:
    - Target inside the **red box** (radius 50) → fine delta, within `±50 px`
@@ -128,23 +144,23 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
    - Target inside the **blue box** (radius 300) → coarse delta, within `±300 px`
    - Target outside the **blue box** → large move, estimate from the full screenshot
 
-3. **Move the mouse** (optionally screenshot in one call):
+3. **Move the mouse**:
 
    ```bash
-   weavgui mouse move '(dx,dy)' --screenshot /tmp/screen.png
+   weavgui mouse move '(dx,dy)'
    ```
 
-   Without `--screenshot`, run `weavgui mouse move '(dx,dy)'` then `weavgui screenshot -o /tmp/screen.png` separately.
+   A screenshot is saved to `screenshot.png` automatically after 500 ms. Read it immediately.
 
-4. **Load the new screenshot** (if not using `--screenshot`, take it now with `weavgui screenshot -o /tmp/screen.png`).
+4. **Verify position**: Check that the crosshair (red lines) is now centered on the target. If not, repeat from step 2 with a corrected delta.
 
-5. **Verify position**: Check that the crosshair (red lines) is now centered on the target. If not, repeat from step 2 with a corrected delta.
-
-6. **Click only when the cursor is confirmed on-target**:
+5. **Click only when the cursor is confirmed on-target**:
 
    ```bash
    weavgui mouse click
    ```
+
+   A screenshot is saved automatically after 2 s. Read it to confirm the action took effect.
 
 ### Why this loop matters
 
@@ -157,16 +173,17 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
 
 ```bash
 # Step 1: initial screenshot
-weavgui screenshot -o /tmp/screen.png
-# → attach /tmp/screen.png, observe crosshair at (500, 400), Submit button at approx (720, 610)
+weavgui screenshot
+# → read screenshot.png, observe crosshair at (500, 400), Submit button at approx (720, 610)
 # → estimate dx=220, dy=210
 
-# Step 2: move toward target and screenshot in one call
-weavgui mouse move '(220,210)' --screenshot /tmp/screen.png
-# → attach /tmp/screen.png, crosshair now at (720, 608) — close enough
+# Step 2: move toward target (auto-screenshots after 500 ms)
+weavgui mouse move '(220,210)'
+# → read screenshot.png, crosshair now at (720, 608) — close enough
 
-# Step 3: click
+# Step 3: click (auto-screenshots after 2 s)
 weavgui mouse click
+# → read screenshot.png to confirm the click took effect
 ```
 
 ---
@@ -189,12 +206,12 @@ Example prompt for the Task tool:
 Use the weavgui CLI to click the "Submit" button visible on screen.
 
 Workflow:
-1. Run `weavgui screenshot -o /tmp/screen.png`, then read the image file.
-2. Identify the "Submit" button in the screenshot. Read the crosshair position from stdout.
-3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)' --screenshot /tmp/screen.png` (saves one CLI call).
-4. Load the screenshot, verify the crosshair is on the button. Adjust if needed.
+1. Run `weavgui screenshot`, then read screenshot.png as an image.
+2. Identify the "Submit" button. Read the crosshair position from stdout.
+3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)'`.
+4. Read screenshot.png (auto-captured after 500 ms), verify the crosshair is on the button. Adjust if needed.
 5. Run `weavgui mouse click`.
-6. Take a final screenshot to confirm the click took effect.
+6. Read screenshot.png (auto-captured after 2 s) to confirm the click took effect.
 
 Return a summary of what happened and the final mouse position.
 ```
@@ -232,8 +249,7 @@ weavgui keystroke command+v
 
 ## Tips
 
-- In the positioning loop, use `mouse move '(dx,dy)' --screenshot /tmp/screen.png` (or `mouse moveto` with `--screenshot`) to move and capture in one command, saving one process invocation.
+- Every action command auto-captures `screenshot.png` — always read it after each command to observe the result.
 - Always prefer the **iterative screenshot loop** over single-shot coordinate estimation.
-- Use `--without-cursor` only when you need a clean image for analysis without the marker overlay.
-- After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), take a fresh screenshot before proceeding.
-- The stdout output of `weavgui screenshot` includes the current mouse position — use this as a precise anchor for the next delta calculation.
+- After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), the auto-screenshot is taken automatically after 1 s — read `screenshot.png` before proceeding.
+- The stdout output of every command includes the current mouse position — use this as a precise anchor for the next delta calculation.

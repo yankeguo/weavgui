@@ -32,7 +32,7 @@ uv tool upgrade weavgui
 
 ```bash
 weavgui --version
-weavgui screenshot -o out.png
+weavgui screenshot
 weavgui mouse move '(100,100)'
 weavgui mouse moveto '(500,300)'
 weavgui mouse click
@@ -40,6 +40,19 @@ weavgui pasteboard write hello world
 weavgui pasteboard read
 weavgui keystroke command+c
 ```
+
+## Auto-Screenshot Behavior
+
+Every action command automatically captures a screenshot to **`screenshot.png`** in the current working directory after a short delay. No flags needed.
+
+| Command | Auto-screenshot delay |
+|---|---|
+| `screenshot` | immediate (no delay) |
+| `mouse move`, `mouse moveto` | 500 ms |
+| `mouse click`, `doubleclick`, `rightclick` | 2 s |
+| `keystroke` | 1 s |
+
+The screenshot always includes cursor markers (crosshair + reference boxes). Read `screenshot.png` as an image after any command to observe the result.
 
 ## Coordinate System
 
@@ -62,18 +75,13 @@ Mouse and screenshot-related commands share the same coordinate convention:
 
 ### `screenshot`
 
-Capture a screenshot of the primary display and save it as PNG.
+Capture a screenshot of the primary display and save it as `screenshot.png` in the current working directory.
 
 ```
-weavgui screenshot -o <output.png> [--without-cursor]
+weavgui screenshot
 ```
 
-| Option | Description |
-|---|---|
-| `-o, --output` | Output `.png` path (required) |
-| `--without-cursor` | Skip cursor overlay drawing |
-
-Default behavior (without `--without-cursor`) annotates the cursor position:
+The cursor position is always annotated:
 
 - Red crosshair spanning the full screenshot
 - Red small box centered on cursor (`100×100 px`, radius 50)
@@ -90,15 +98,16 @@ The three boxes serve as **positioning references** for the next `mouse move` / 
 | Outside the blue box | Large move needed — estimate from the full screenshot |
 
 ```bash
-weavgui screenshot -o out.png
-weavgui screenshot -o out-no-cursor.png --without-cursor
+weavgui screenshot
+# → saves screenshot.png with cursor markers
+# → prints cursor position and display bounds to stdout
 ```
 
 ### `mouse`
 
 #### `mouse move '(dx,dy)'`
 
-Move the cursor by a relative pixel delta. The argument uses `(dx,dy)` format. Fails if the target position would leave the primary display bounds.
+Move the cursor by a relative pixel delta. The argument uses `(dx,dy)` format. Fails if the target position would leave the primary display bounds. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
 
 ```bash
 weavgui mouse move '(100,100)'
@@ -107,7 +116,7 @@ weavgui mouse move '(-100,50)'
 
 #### `mouse moveto '(x,y)'`
 
-Move the cursor to an absolute position. The argument uses `(x,y)` format. Fails if the position is outside the primary display bounds.
+Move the cursor to an absolute position. The argument uses `(x,y)` format. Fails if the position is outside the primary display bounds. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
 
 ```bash
 weavgui mouse moveto '(500,300)'
@@ -115,7 +124,7 @@ weavgui mouse moveto '(500,300)'
 
 #### `mouse click`
 
-Left click at the current cursor position.
+Left click at the current cursor position. Waits 2 s then saves a screenshot to `screenshot.png`.
 
 ```bash
 weavgui mouse click
@@ -123,7 +132,7 @@ weavgui mouse click
 
 #### `mouse doubleclick`
 
-Double left click at the current cursor position.
+Double left click at the current cursor position. Waits 2 s then saves a screenshot to `screenshot.png`.
 
 ```bash
 weavgui mouse doubleclick
@@ -131,7 +140,7 @@ weavgui mouse doubleclick
 
 #### `mouse rightclick`
 
-Right click at the current cursor position.
+Right click at the current cursor position. Waits 2 s then saves a screenshot to `screenshot.png`.
 
 ```bash
 weavgui mouse rightclick
@@ -157,7 +166,7 @@ weavgui pasteboard write hello world
 
 ### `keystroke`
 
-Simulate keyboard input. Supports single keys and combinations joined with `+`.
+Simulate keyboard input. Supports single keys and combinations joined with `+`. Waits 1 s then saves a screenshot to `screenshot.png`.
 
 ```
 weavgui keystroke <keys>
@@ -201,7 +210,7 @@ Run commands from source:
 
 ```bash
 uv run weavgui --version
-uv run weavgui screenshot -o out.png
+uv run weavgui screenshot
 ```
 
 ## Notes
