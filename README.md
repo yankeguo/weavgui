@@ -76,8 +76,18 @@ weavgui screenshot -o <output.png> [--without-cursor]
 Default behavior (without `--without-cursor`) annotates the cursor position:
 
 - Red crosshair spanning the full screenshot
-- Red inner box centered on cursor (`200×200 px`)
-- Blue outer box centered on cursor (`600×600 px`)
+- Red small box centered on cursor (`100×100 px`, radius 50)
+- Green medium box centered on cursor (`200×200 px`, radius 100)
+- Blue large box centered on cursor (`600×600 px`, radius 300)
+
+The three boxes serve as **positioning references** for the next `mouse move` / `mouse moveto` command:
+
+| Target location | Suggested delta range |
+|---|---|
+| Inside the red box | Fine adjustment, `±50 px` |
+| Between red and green boxes | Medium adjustment, `±50–100 px` |
+| Between green and blue boxes | Coarse adjustment, `±100–300 px` |
+| Outside the blue box | Large move needed — estimate from the full screenshot |
 
 ```bash
 weavgui screenshot -o out.png

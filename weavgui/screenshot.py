@@ -13,9 +13,11 @@ from .utils import clamp, coordinate_system_lines
 __all__ = ["capture"]
 
 RED = (255, 0, 0)
+GREEN = (0, 180, 0)
 BLUE = (0, 102, 255)
-INNER_BOX_DISTANCE = 100
-OUTER_BOX_DISTANCE = 300
+SMALL_BOX_DISTANCE = 50
+MEDIUM_BOX_DISTANCE = 100
+LARGE_BOX_DISTANCE = 300
 LINE_WIDTH = 2
 BOX_LINE_WIDTH = 2
 
@@ -46,8 +48,9 @@ def capture(output: str, without_cursor: bool) -> None:
                         "Cursor marker details:",
                         *coordinate_system_lines(),
                         f"- Crosshair center (mouse position): ({cursor_x}, {cursor_y}).",
-                        f"- Inner box: {INNER_BOX_DISTANCE * 2}x{INNER_BOX_DISTANCE * 2}px, color red.",
-                        f"- Outer box: {OUTER_BOX_DISTANCE * 2}x{OUTER_BOX_DISTANCE * 2}px, color blue.",
+                        f"- Small box: {SMALL_BOX_DISTANCE * 2}x{SMALL_BOX_DISTANCE * 2}px, color red, radius {SMALL_BOX_DISTANCE}.",
+                        f"- Medium box: {MEDIUM_BOX_DISTANCE * 2}x{MEDIUM_BOX_DISTANCE * 2}px, color green, radius {MEDIUM_BOX_DISTANCE}.",
+                        f"- Large box: {LARGE_BOX_DISTANCE * 2}x{LARGE_BOX_DISTANCE * 2}px, color blue, radius {LARGE_BOX_DISTANCE}.",
                     ]
                 )
             )
@@ -92,8 +95,11 @@ def _draw_markers(image: Image.Image, cursor_x: int, cursor_y: int) -> None:
     draw.line([(0, cursor_y), (width - 1, cursor_y)], fill=RED, width=LINE_WIDTH)
     draw.line([(cursor_x, 0), (cursor_x, height - 1)], fill=RED, width=LINE_WIDTH)
 
-    for distance in (INNER_BOX_DISTANCE, OUTER_BOX_DISTANCE):
-        color = RED if distance == INNER_BOX_DISTANCE else BLUE
+    for distance, color in (
+        (SMALL_BOX_DISTANCE, RED),
+        (MEDIUM_BOX_DISTANCE, GREEN),
+        (LARGE_BOX_DISTANCE, BLUE),
+    ):
         draw.rectangle(
             [
                 (cursor_x - distance, cursor_y - distance),

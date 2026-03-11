@@ -44,8 +44,18 @@ weavgui screenshot -o <path.png> --without-cursor  # clean screenshot
 Default screenshot draws cursor markers at the current mouse position:
 
 - Red crosshair lines
-- Red inner box (200×200 px)
-- Blue outer box (600×600 px)
+- Red small box (100×100 px, radius 50)
+- Green medium box (200×200 px, radius 100)
+- Blue large box (600×600 px, radius 300)
+
+The three concentric boxes are **positioning references** — use them to gauge how far to move the mouse next:
+
+| Target location | Delta range |
+|---|---|
+| Inside red box | Fine: `±50 px` |
+| Between red and green | Medium: `±50–100 px` |
+| Between green and blue | Coarse: `±100–300 px` |
+| Outside blue box | Large move — estimate from full screenshot |
 
 The command also prints the current mouse coordinates and display bounds to stdout.
 
@@ -112,7 +122,11 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
 
    Then read `/tmp/screen.png` as an image attachment.
 
-2. **Analyze the screenshot**: Identify the target UI element. Read the cursor marker position from the stdout output (printed automatically). Estimate the pixel delta `(dx, dy)` needed to move from the current crosshair to the target.
+2. **Analyze the screenshot**: Identify the target UI element. Read the cursor marker position from the stdout output (printed automatically). Use the three reference boxes to gauge your delta:
+   - Target inside the **red box** (radius 50) → fine delta, within `±50 px`
+   - Target inside the **green box** (radius 100) → medium delta, within `±100 px`
+   - Target inside the **blue box** (radius 300) → coarse delta, within `±300 px`
+   - Target outside the **blue box** → large move, estimate from the full screenshot
 
 3. **Move the mouse** (optionally screenshot in one call):
 
