@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "CLI to orchestrate and automate graphical desktop workflows."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = ["click", "mss", "pillow", "pyautogui", "pyperclip"]
 
 [project.scripts]
 weavgui = "weavgui.cli:main"
