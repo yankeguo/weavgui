@@ -52,18 +52,18 @@ The command also prints the current mouse coordinates and display bounds to stdo
 ### Mouse Move
 
 ```bash
-weavgui mouse move '(dx,dy)'
+weavgui mouse move '(dx,dy)' [--screenshot PATH]
 ```
 
-Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout.
+Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout. Optional `-s` / `--screenshot PATH`: after moving, save a screenshot to PATH (same format as `screenshot -o`); saves one CLI call in positioning loops.
 
 ### Mouse Move To
 
 ```bash
-weavgui mouse moveto '(x,y)'
+weavgui mouse moveto '(x,y)' [--screenshot PATH]
 ```
 
-Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds.
+Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds. Optional `-s` / `--screenshot PATH`: after moving, save a screenshot to PATH; saves one CLI call in positioning loops.
 
 ### Mouse Click
 
@@ -114,17 +114,15 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
 
 2. **Analyze the screenshot**: Identify the target UI element. Read the cursor marker position from the stdout output (printed automatically). Estimate the pixel delta `(dx, dy)` needed to move from the current crosshair to the target.
 
-3. **Move the mouse**:
+3. **Move the mouse** (optionally screenshot in one call):
 
    ```bash
-   weavgui mouse move '(dx,dy)'
+   weavgui mouse move '(dx,dy)' --screenshot /tmp/screen.png
    ```
 
-4. **Take another screenshot** and load it:
+   Without `--screenshot`, run `weavgui mouse move '(dx,dy)'` then `weavgui screenshot -o /tmp/screen.png` separately.
 
-   ```bash
-   weavgui screenshot -o /tmp/screen.png
-   ```
+4. **Load the new screenshot** (if not using `--screenshot`, take it now with `weavgui screenshot -o /tmp/screen.png`).
 
 5. **Verify position**: Check that the crosshair (red lines) is now centered on the target. If not, repeat from step 2 with a corrected delta.
 
@@ -149,14 +147,11 @@ weavgui screenshot -o /tmp/screen.png
 # → attach /tmp/screen.png, observe crosshair at (500, 400), Submit button at approx (720, 610)
 # → estimate dx=220, dy=210
 
-# Step 2: move toward target
-weavgui mouse move '(220,210)'
-
-# Step 3: verify screenshot
-weavgui screenshot -o /tmp/screen.png
+# Step 2: move toward target and screenshot in one call
+weavgui mouse move '(220,210)' --screenshot /tmp/screen.png
 # → attach /tmp/screen.png, crosshair now at (720, 608) — close enough
 
-# Step 4: click
+# Step 3: click
 weavgui mouse click
 ```
 
@@ -182,8 +177,8 @@ Use the weavgui CLI to click the "Submit" button visible on screen.
 Workflow:
 1. Run `weavgui screenshot -o /tmp/screen.png`, then read the image file.
 2. Identify the "Submit" button in the screenshot. Read the crosshair position from stdout.
-3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)'`.
-4. Take another screenshot, verify the crosshair is on the button. Adjust if needed.
+3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)' --screenshot /tmp/screen.png` (saves one CLI call).
+4. Load the screenshot, verify the crosshair is on the button. Adjust if needed.
 5. Run `weavgui mouse click`.
 6. Take a final screenshot to confirm the click took effect.
 
@@ -223,6 +218,7 @@ weavgui keystroke command+v
 
 ## Tips
 
+- In the positioning loop, use `mouse move '(dx,dy)' --screenshot /tmp/screen.png` (or `mouse moveto` with `--screenshot`) to move and capture in one command, saving one process invocation.
 - Always prefer the **iterative screenshot loop** over single-shot coordinate estimation.
 - Use `--without-cursor` only when you need a clean image for analysis without the marker overlay.
 - After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), take a fresh screenshot before proceeding.

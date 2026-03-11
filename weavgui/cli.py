@@ -61,24 +61,44 @@ def mouse_group() -> None:
 
 @mouse_group.command("move")
 @click.argument("delta", type=str)
-def mouse_move_command(delta: str) -> None:
+@click.option(
+    "-s",
+    "--screenshot",
+    "screenshot_path",
+    type=click.Path(path_type=str),
+    default=None,
+    help="After moving, save a screenshot to PATH (saves one CLI call in positioning loops).",
+)
+def mouse_move_command(delta: str, screenshot_path: str | None) -> None:
     """Move mouse cursor by relative delta, e.g. '(100,-50)'."""
     try:
         dx, dy = parse_point(delta)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     move(dx=dx, dy=dy)
+    if screenshot_path:
+        capture(output=screenshot_path, without_cursor=False)
 
 
 @mouse_group.command("moveto")
 @click.argument("position", type=str)
-def mouse_moveto_command(position: str) -> None:
+@click.option(
+    "-s",
+    "--screenshot",
+    "screenshot_path",
+    type=click.Path(path_type=str),
+    default=None,
+    help="After moving, save a screenshot to PATH (saves one CLI call in positioning loops).",
+)
+def mouse_moveto_command(position: str, screenshot_path: str | None) -> None:
     """Move mouse cursor to absolute position, e.g. '(500,300)'."""
     try:
         x, y = parse_point(position)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     move_to(x=x, y=y)
+    if screenshot_path:
+        capture(output=screenshot_path, without_cursor=False)
 
 
 @mouse_group.command("click")
