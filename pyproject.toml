@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "weavgui"
+version = "0.1.0"
+description = "CLI to orchestrate and automate graphical desktop workflows."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+weavgui = "weavgui.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["weavgui"]
+
+[tool.hatch.build.targets.wheel.sources]
+"weavgui" = "weavgui"
+
+[tool.hatch.build]
+include = ["weavgui/**/*.py"]
+
+[tool.hatch.build.targets.sdist]
+include = ["weavgui/", "README.md", "LICENSE"]
+
+[tool.uv]
+package = true
