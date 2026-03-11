@@ -7,6 +7,8 @@ from .mouse import double_click, left_click, move, right_click
 from .pasteboard import read, write
 from .screenshot import capture
 
+__all__ = ["cli"]
+
 
 def app_version() -> str:
     try:
@@ -98,8 +100,3 @@ def pasteboard_read_command() -> None:
 def pasteboard_write_command(text: tuple[str, ...]) -> None:
     """Write text to pasteboard."""
     write(" ".join(text))
-
-
-def main() -> int:
-    cli()
-    return 0

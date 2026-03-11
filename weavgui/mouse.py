@@ -3,7 +3,9 @@ from __future__ import annotations
 import click
 import pyautogui
 
-from .utils import echo_coordinate_system
+from .utils import coordinate_system_lines
+
+__all__ = ["move", "left_click", "double_click", "right_click"]
 
 
 def move(dx: int, dy: int) -> None:
@@ -21,7 +23,7 @@ def move(dx: int, dy: int) -> None:
             "\n".join(
                 [
                     "Mouse move details:",
-                    *echo_coordinate_system(),
+                    *coordinate_system_lines(),
                     f"- Start position: ({start_x}, {start_y}).",
                     f"- Relative delta: (dx={dx}, dy={dy}).",
                     f"- End position: ({target_x}, {target_y}).",
@@ -59,7 +61,7 @@ def _do_click(action_name: str, button: str, is_double: bool) -> None:
             "\n".join(
                 [
                     f"Mouse {action_name} details:",
-                    *echo_coordinate_system(),
+                    *coordinate_system_lines(),
                     f"- Action position: ({x}, {y}).",
                     f"- Button: {button}.",
                     f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",

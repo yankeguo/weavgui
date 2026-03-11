@@ -6,6 +6,8 @@ import subprocess
 import click
 import pyautogui
 
+__all__ = ["send"]
+
 MODIFIER_ALIASES = {
     "ctrl": "ctrl",
     "control": "ctrl",

@@ -5,14 +5,6 @@ description: Automate desktop GUI operations using the weavgui CLI: taking scree
 
 # Skill: weavgui Desktop Automation
 
-## Overview
-
-`weavgui` is a CLI tool for automating desktop GUI operations: taking screenshots, moving the mouse, clicking, typing keystrokes, and reading/writing the system pasteboard.
-
-Use this skill when asked to interact with the desktop graphically — clicking UI elements, reading on-screen text, filling forms, navigating applications, etc.
-
----
-
 ## Installation
 
 ```bash
@@ -64,7 +56,7 @@ weavgui mouse move <dx> <dy>       # positive values
 weavgui mouse move -- <dx> <dy>    # use -- when dx or dy is negative
 ```
 
-Moves the mouse by a **relative delta**. Fails if the target would leave the display bounds.
+Moves the mouse by a **relative delta**. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout.
 
 ### Mouse Click
 
@@ -162,6 +154,47 @@ weavgui screenshot -o /tmp/screen.png
 # Step 4: click
 weavgui mouse click
 ```
+
+---
+
+## Delegate to a Subagent
+
+The iterative positioning loop loads multiple screenshots into context, which can consume significant tokens. **When possible, launch a subagent (Task tool) to perform the entire positioning-and-click sequence**, keeping the main conversation context clean.
+
+### How to delegate
+
+Use the Task tool with a prompt that describes:
+
+1. The target element (e.g. "the Submit button in the bottom-right of the dialog")
+2. The action to perform once positioned (e.g. `mouse click`, `mouse doubleclick`)
+3. Any follow-up actions (e.g. type text, press a key)
+
+Example prompt for the Task tool:
+
+```
+Use the weavgui CLI to click the "Submit" button visible on screen.
+
+Workflow:
+1. Run `weavgui screenshot -o /tmp/screen.png`, then read the image file.
+2. Identify the "Submit" button in the screenshot. Read the crosshair position from stdout.
+3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move <dx> <dy>`.
+4. Take another screenshot, verify the crosshair is on the button. Adjust if needed.
+5. Run `weavgui mouse click`.
+6. Take a final screenshot to confirm the click took effect.
+
+Return a summary of what happened and the final mouse position.
+```
+
+### Benefits
+
+- **Saves main context**: screenshots stay inside the subagent and are discarded when it finishes.
+- **Isolation**: if the loop takes many iterations, the main conversation is unaffected.
+- **Composability**: you can launch multiple subagents in sequence (e.g. one to click a field, another to type text) without accumulating images.
+
+### When NOT to delegate
+
+- If you only need a single screenshot for analysis (no mouse interaction), just run the command directly.
+- If the task is a single click where you are already confident about the position.
 
 ---
 

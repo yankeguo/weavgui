@@ -8,7 +8,9 @@ import pyautogui
 from mss import mss
 from PIL import Image, ImageDraw
 
-from .utils import clamp, echo_coordinate_system
+from .utils import clamp, coordinate_system_lines
+
+__all__ = ["capture"]
 
 RED = (255, 0, 0)
 BLUE = (0, 102, 255)
@@ -27,7 +29,6 @@ def capture(output: str, without_cursor: bool) -> None:
         image = _grab_primary_monitor()
         image = _to_logical_resolution(image)
 
-        cursor_x = cursor_y = 0
         if not without_cursor:
             cursor = pyautogui.position()
             cursor_x = clamp(int(cursor.x), 0, image.width - 1)
@@ -37,12 +38,13 @@ def capture(output: str, without_cursor: bool) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(output_path, format="PNG")
         click.echo(f"Screenshot saved to: {output_path}")
+
         if not without_cursor:
             click.echo(
                 "\n".join(
                     [
                         "Cursor marker details:",
-                        *echo_coordinate_system(),
+                        *coordinate_system_lines(),
                         f"- Crosshair center (mouse position): ({cursor_x}, {cursor_y}).",
                         f"- Inner box: {INNER_BOX_DISTANCE * 2}x{INNER_BOX_DISTANCE * 2}px, color red.",
                         f"- Outer box: {OUTER_BOX_DISTANCE * 2}x{OUTER_BOX_DISTANCE * 2}px, color blue.",

@@ -11,7 +11,7 @@ requires-python = ">=3.13"
 dependencies = ["click", "mss", "pillow", "pyautogui", "pyperclip"]
 
 [project.scripts]
-weavgui = "weavgui.cli:main"
+weavgui = "weavgui.cli:cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["weavgui"]

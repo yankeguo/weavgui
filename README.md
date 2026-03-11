@@ -6,7 +6,7 @@ A CLI to orchestrate and automate desktop GUI operations with code-level precisi
 npx skills add https://github.com/yankeguo/weavgui/tree/main/skills/weavgui -a openclaw -y
 ```
 
-![image1](assets/image1.png)
+![Screenshot with cursor crosshair and bounding boxes](assets/image1.png)
 
 ## Installation
 
@@ -160,6 +160,23 @@ On macOS, single-key combos with `command` are sent via AppleScript for better r
 weavgui keystroke c
 weavgui keystroke ctrl+c
 weavgui keystroke command+c
+```
+
+## Development
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/yankeguo/weavgui.git
+cd weavgui
+uv sync
+```
+
+Run commands from source:
+
+```bash
+uv run weavgui --version
+uv run weavgui screenshot -o out.png
 ```
 
 ## Notes
