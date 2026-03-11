@@ -1,6 +1,14 @@
 # weavgui
 
-A CLI to orchestrate and automate desktop GUI operations with code-level precision.
+**Turn any vision-capable LLM into a desktop GUI operator.**
+
+weavgui provides a minimal CLI toolkit that closes the loop between _seeing_ and _acting_: take an annotated screenshot, feed it to a vision model, move the mouse, and repeat — until the model clicks exactly where it needs to.
+
+```
+screenshot (with crosshair) → vision model analyzes image → mouse move / click → screenshot → ...
+```
+
+No browser required. No DOM. No accessibility tree. Just pixels and a feedback loop.
 
 ```shell
 npx skills add https://github.com/yankeguo/weavgui/tree/main/skills/weavgui -a openclaw -y
@@ -25,7 +33,8 @@ uv tool upgrade weavgui
 ```bash
 weavgui --version
 weavgui screenshot -o out.png
-weavgui mouse move 100 100
+weavgui mouse move '(100,100)'
+weavgui mouse moveto '(500,300)'
 weavgui mouse click
 weavgui pasteboard write hello world
 weavgui pasteboard read
@@ -77,15 +86,21 @@ weavgui screenshot -o out-no-cursor.png --without-cursor
 
 ### `mouse`
 
-#### `mouse move <dx> <dy>`
+#### `mouse move '(dx,dy)'`
 
-Move the cursor by a relative pixel delta. Fails if the target position would leave the primary display bounds.
-
-For negative values, use `--` to prevent argument parsing as options.
+Move the cursor by a relative pixel delta. The argument uses `(dx,dy)` format. Fails if the target position would leave the primary display bounds.
 
 ```bash
-weavgui mouse move 100 100
-weavgui mouse move -- -100 0
+weavgui mouse move '(100,100)'
+weavgui mouse move '(-100,50)'
+```
+
+#### `mouse moveto '(x,y)'`
+
+Move the cursor to an absolute position. The argument uses `(x,y)` format. Fails if the position is outside the primary display bounds.
+
+```bash
+weavgui mouse moveto '(500,300)'
 ```
 
 #### `mouse click`

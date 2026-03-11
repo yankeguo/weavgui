@@ -3,7 +3,8 @@ from importlib.metadata import PackageNotFoundError, version
 import click
 
 from .keyboard import send
-from .mouse import double_click, left_click, move, right_click
+from .mouse import double_click, left_click, move, move_to, right_click
+from .utils import parse_point
 from .pasteboard import read, write
 from .screenshot import capture
 
@@ -59,11 +60,25 @@ def mouse_group() -> None:
 
 
 @mouse_group.command("move")
-@click.argument("dx", type=int)
-@click.argument("dy", type=int)
-def mouse_move_command(dx: int, dy: int) -> None:
-    """Move mouse cursor by relative delta."""
+@click.argument("delta", type=str)
+def mouse_move_command(delta: str) -> None:
+    """Move mouse cursor by relative delta, e.g. '(100,-50)'."""
+    try:
+        dx, dy = parse_point(delta)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     move(dx=dx, dy=dy)
+
+
+@mouse_group.command("moveto")
+@click.argument("position", type=str)
+def mouse_moveto_command(position: str) -> None:
+    """Move mouse cursor to absolute position, e.g. '(500,300)'."""
+    try:
+        x, y = parse_point(position)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    move_to(x=x, y=y)
 
 
 @mouse_group.command("click")

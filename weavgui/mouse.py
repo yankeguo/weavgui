@@ -5,7 +5,7 @@ import pyautogui
 
 from .utils import coordinate_system_lines
 
-__all__ = ["move", "left_click", "double_click", "right_click"]
+__all__ = ["move", "move_to", "left_click", "double_click", "right_click"]
 
 
 def move(dx: int, dy: int) -> None:
@@ -27,6 +27,27 @@ def move(dx: int, dy: int) -> None:
                     f"- Start position: ({start_x}, {start_y}).",
                     f"- Relative delta: (dx={dx}, dy={dy}).",
                     f"- End position: ({target_x}, {target_y}).",
+                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
+                ]
+            )
+        )
+    except click.ClickException:
+        raise
+    except Exception as exc:  # pragma: no cover - system dependent failures
+        raise click.ClickException(f"Failed to move mouse: {exc}") from exc
+
+
+def move_to(x: int, y: int) -> None:
+    try:
+        width, height = _validate_target(x, y)
+        pyautogui.moveTo(x, y)
+
+        click.echo(
+            "\n".join(
+                [
+                    "Mouse moveto details:",
+                    *coordinate_system_lines(),
+                    f"- Target position: ({x}, {y}).",
                     f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
                 ]
             )

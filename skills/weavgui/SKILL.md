@@ -52,11 +52,18 @@ The command also prints the current mouse coordinates and display bounds to stdo
 ### Mouse Move
 
 ```bash
-weavgui mouse move <dx> <dy>       # positive values
-weavgui mouse move -- <dx> <dy>    # use -- when dx or dy is negative
+weavgui mouse move '(dx,dy)'
 ```
 
-Moves the mouse by a **relative delta**. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout.
+Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. The command prints the start position, end position, and display bounds to stdout.
+
+### Mouse Move To
+
+```bash
+weavgui mouse moveto '(x,y)'
+```
+
+Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds.
 
 ### Mouse Click
 
@@ -89,7 +96,7 @@ weavgui pasteboard read              # read from clipboard
 
 **Never guess a target coordinate and click immediately.**
 
-Mouse move accepts only relative deltas. You do not know the current mouse position or the exact pixel position of a UI element in advance. The correct approach is an **iterative positioning loop**:
+`mouse move` accepts only relative deltas; `mouse moveto` accepts absolute coordinates but you still need to know the target pixel position. The correct approach is an **iterative positioning loop**:
 
 ```
 screenshot → analyze image → move mouse → screenshot → analyze image → move mouse → ... → click
@@ -110,9 +117,7 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
 3. **Move the mouse**:
 
    ```bash
-   weavgui mouse move <dx> <dy>
-   # or for negative values:
-   weavgui mouse move -- <dx> <dy>
+   weavgui mouse move '(dx,dy)'
    ```
 
 4. **Take another screenshot** and load it:
@@ -131,7 +136,7 @@ screenshot → analyze image → move mouse → screenshot → analyze image →
 
 ### Why this loop matters
 
-- `mouse move` only accepts relative deltas — you cannot teleport to an absolute coordinate.
+- Even with `mouse moveto`, you need the exact target pixel coordinate — which requires a screenshot to determine.
 - Screen content, window positions, and scroll state can all shift between steps.
 - Even a single iteration of screenshot → analyze → move can land the cursor accurately.
 - For high-precision targets (small buttons, text fields), two or three iterations are typical.
@@ -145,7 +150,7 @@ weavgui screenshot -o /tmp/screen.png
 # → estimate dx=220, dy=210
 
 # Step 2: move toward target
-weavgui mouse move 220 210
+weavgui mouse move '(220,210)'
 
 # Step 3: verify screenshot
 weavgui screenshot -o /tmp/screen.png
@@ -177,7 +182,7 @@ Use the weavgui CLI to click the "Submit" button visible on screen.
 Workflow:
 1. Run `weavgui screenshot -o /tmp/screen.png`, then read the image file.
 2. Identify the "Submit" button in the screenshot. Read the crosshair position from stdout.
-3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move <dx> <dy>`.
+3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)'`.
 4. Take another screenshot, verify the crosshair is on the button. Adjust if needed.
 5. Run `weavgui mouse click`.
 6. Take a final screenshot to confirm the click took effect.

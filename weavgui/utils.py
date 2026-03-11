@@ -1,6 +1,17 @@
 from __future__ import annotations
 
-__all__ = ["clamp", "coordinate_system_lines"]
+import re
+
+__all__ = ["clamp", "coordinate_system_lines", "parse_point"]
+
+_POINT_RE = re.compile(r"^\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)$")
+
+
+def parse_point(value: str) -> tuple[int, int]:
+    m = _POINT_RE.match(value.strip())
+    if not m:
+        raise ValueError(f"Invalid coordinate format: {value!r}, expected (x,y)")
+    return int(m.group(1)), int(m.group(2))
 
 
 def clamp(value: int, lower: int, upper: int) -> int:
