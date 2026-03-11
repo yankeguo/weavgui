@@ -4,7 +4,7 @@ import click
 import pyperclip
 
 
-def pasteboard_read() -> None:
+def read() -> None:
     try:
         text = pyperclip.paste()
         click.echo(text)
@@ -12,7 +12,7 @@ def pasteboard_read() -> None:
         raise click.ClickException(f"Failed to read pasteboard: {exc}") from exc
 
 
-def pasteboard_write(text: str) -> None:
+def write(text: str) -> None:
     try:
         pyperclip.copy(text)
         click.echo(f"Pasteboard updated ({len(text)} chars).")

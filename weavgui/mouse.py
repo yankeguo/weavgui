@@ -3,6 +3,76 @@ from __future__ import annotations
 import click
 import pyautogui
 
+from .utils import echo_coordinate_system
+
+
+def move(dx: int, dy: int) -> None:
+    try:
+        current = pyautogui.position()
+        start_x = int(current.x)
+        start_y = int(current.y)
+        target_x = start_x + int(dx)
+        target_y = start_y + int(dy)
+
+        width, height = _validate_target(target_x, target_y)
+        pyautogui.moveTo(target_x, target_y)
+
+        click.echo(
+            "\n".join(
+                [
+                    "Mouse move details:",
+                    *echo_coordinate_system(),
+                    f"- Start position: ({start_x}, {start_y}).",
+                    f"- Relative delta: (dx={dx}, dy={dy}).",
+                    f"- End position: ({target_x}, {target_y}).",
+                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
+                ]
+            )
+        )
+    except click.ClickException:
+        raise
+    except Exception as exc:  # pragma: no cover - system dependent failures
+        raise click.ClickException(f"Failed to move mouse: {exc}") from exc
+
+
+def left_click() -> None:
+    _do_click(action_name="click", button="left", is_double=False)
+
+
+def double_click() -> None:
+    _do_click(action_name="doubleclick", button="left", is_double=True)
+
+
+def right_click() -> None:
+    _do_click(action_name="rightclick", button="right", is_double=False)
+
+
+def _do_click(action_name: str, button: str, is_double: bool) -> None:
+    try:
+        x, y, width, height = _current_position_with_bounds()
+        if is_double:
+            pyautogui.doubleClick(button=button)
+        else:
+            pyautogui.click(button=button)
+
+        click.echo(
+            "\n".join(
+                [
+                    f"Mouse {action_name} details:",
+                    *echo_coordinate_system(),
+                    f"- Action position: ({x}, {y}).",
+                    f"- Button: {button}.",
+                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
+                ]
+            )
+        )
+    except click.ClickException:
+        raise
+    except Exception as exc:  # pragma: no cover - system dependent failures
+        raise click.ClickException(
+            f"Failed to execute mouse {action_name}: {exc}"
+        ) from exc
+
 
 def _validate_target(target_x: int, target_y: int) -> tuple[int, int]:
     screen_size = pyautogui.size()
@@ -21,85 +91,9 @@ def _validate_target(target_x: int, target_y: int) -> tuple[int, int]:
     return width, height
 
 
-def _echo_coordinate_system() -> list[str]:
-    return [
-        "- Coordinate system: primary-display logical coordinates (pixels).",
-        "- Origin: top-left of the screenshot (0, 0).",
-        "- Axis directions: x increases to the right, y increases downward.",
-    ]
-
-
 def _current_position_with_bounds() -> tuple[int, int, int, int]:
     current = pyautogui.position()
     x = int(current.x)
     y = int(current.y)
     width, height = _validate_target(x, y)
     return x, y, width, height
-
-
-def move_mouse_relative(dx: int, dy: int) -> None:
-    try:
-        current = pyautogui.position()
-        start_x = int(current.x)
-        start_y = int(current.y)
-        target_x = start_x + int(dx)
-        target_y = start_y + int(dy)
-
-        width, height = _validate_target(target_x, target_y)
-        pyautogui.moveTo(target_x, target_y)
-
-        click.echo(
-            "\n".join(
-                [
-                    "Mouse move details:",
-                    *_echo_coordinate_system(),
-                    f"- Start position: ({start_x}, {start_y}).",
-                    f"- Relative delta: (dx={dx}, dy={dy}).",
-                    f"- End position: ({target_x}, {target_y}).",
-                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
-                ]
-            )
-        )
-    except click.ClickException:
-        raise
-    except Exception as exc:  # pragma: no cover - system dependent failures
-        raise click.ClickException(f"Failed to move mouse: {exc}") from exc
-
-
-def click_mouse() -> None:
-    _run_click_action(action_name="click", button="left", is_double=False)
-
-
-def double_click_mouse() -> None:
-    _run_click_action(action_name="doubleclick", button="left", is_double=True)
-
-
-def right_click_mouse() -> None:
-    _run_click_action(action_name="rightclick", button="right", is_double=False)
-
-
-def _run_click_action(action_name: str, button: str, is_double: bool) -> None:
-    try:
-        x, y, width, height = _current_position_with_bounds()
-        if is_double:
-            pyautogui.doubleClick(button=button)
-        else:
-            pyautogui.click(button=button)
-
-        click.echo(
-            "\n".join(
-                [
-                    f"Mouse {action_name} details:",
-                    *_echo_coordinate_system(),
-                    f"- Action position: ({x}, {y}).",
-                    f"- Button: {button}.",
-                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
-                ]
-            )
-        )
-    except click.ClickException:
-        raise
-    except Exception as exc:  # pragma: no cover - system dependent failures
-        raise click.ClickException(
-            f"Failed to execute mouse {action_name}: {exc}"
-        ) from exc
