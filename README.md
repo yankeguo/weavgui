@@ -2,6 +2,10 @@
 
 A CLI to orchestrate and automate desktop GUI operations with code-level precision.
 
+```shell
+npx skills add https://github.com/yankeguo/weavgui/tree/main/skills/weavgui -a openclaw -y
+```
+
 ![image1](assets/image1.png)
 
 ## Installation
