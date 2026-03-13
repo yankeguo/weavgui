@@ -26,7 +26,7 @@ packages = ["weavgui"]
 include = ["weavgui/**/*.py"]
 
 [tool.hatch.build.targets.sdist]
-include = ["weavgui/", "README.md", "LICENSE"]
+include = ["weavgui/", "README.md", "README.zh.md", "LICENSE"]
 
 [tool.uv]
 package = true
