@@ -1,5 +1,7 @@
 # weavgui
 
+[English](README.md) | [中文](README.zh.md)
+
 **Turn any vision-capable LLM into a desktop GUI operator.**
 
 weavgui provides a minimal CLI toolkit that closes the loop between _seeing_ and _acting_: take an annotated screenshot, feed it to a vision model, move the mouse, and repeat — until the model clicks exactly where it needs to.
