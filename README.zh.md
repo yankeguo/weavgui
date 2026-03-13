@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README.zh.md)
 
+> **使用要求：** 需使用**具有视觉能力的大模型**，且类 Claw 平台需支持**从文件直接将图片载入上下文**。推荐使用 [weavbot](https://github.com/yankeguo/weavbot) 来实现该工作流。
+
 **将任意具备视觉能力的 LLM 变成桌面 GUI 操作员。**
 
 weavgui 提供一套 minimal CLI 工具，打通「看见」与「操作」的闭环：截一张带标注的屏幕、交给视觉模型分析、移动鼠标并执行点击，如此循环，直到模型精确点击目标位置。
