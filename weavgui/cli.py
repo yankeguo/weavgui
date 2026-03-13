@@ -5,9 +5,9 @@ import click
 
 from .keyboard import send
 from .mouse import double_click, left_click, move, move_to, right_click
-from .utils import parse_point
 from .pasteboard import read, write
 from .screenshot import capture
+from .utils import parse_point
 
 __all__ = ["cli"]
 

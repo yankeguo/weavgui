@@ -55,12 +55,8 @@ def _send_applescript(keys: tuple[str, ...]) -> None:
     modifiers = [key for key in keys if key in MODIFIER_KEYWORDS]
     using_clause = ""
     if modifiers:
-        using_clause = (
-            " using {" + ", ".join(f"{item} down" for item in modifiers) + "}"
-        )
-    script = (
-        f'tell application "System Events" to keystroke "{non_modifier}"{using_clause}'
-    )
+        using_clause = " using {" + ", ".join(f"{item} down" for item in modifiers) + "}"
+    script = f'tell application "System Events" to keystroke "{non_modifier}"{using_clause}'
     try:
         subprocess.run(
             ["osascript", "-e", script],

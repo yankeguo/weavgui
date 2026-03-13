@@ -92,9 +92,7 @@ def _do_click(action_name: str, button: str, is_double: bool) -> None:
     except click.ClickException:
         raise
     except Exception as exc:  # pragma: no cover - system dependent failures
-        raise click.ClickException(
-            f"Failed to execute mouse {action_name}: {exc}"
-        ) from exc
+        raise click.ClickException(f"Failed to execute mouse {action_name}: {exc}") from exc
 
 
 def _validate_target(target_x: int, target_y: int) -> tuple[int, int]:
