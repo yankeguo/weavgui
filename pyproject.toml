@@ -8,10 +8,20 @@ version = "0.1.5"
 description = "CLI to orchestrate and automate graphical desktop workflows."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["click", "mss", "pillow", "pyautogui", "pyperclip"]
+dependencies = [
+    "click>=8.3.1,<9.0.0",
+    "mss>=10.1.0,<11.0.0",
+    "pillow>=12.1.1,<13.0.0",
+    "pyautogui>=0.9.54,<1.0.0",
+    "pyperclip>=1.11.0,<2.0.0",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=9.0.0,<10.0.0", "pytest-asyncio>=1.3.0,<2.0.0", "ruff>=0.1.0"]
+dev = [
+    "pytest>=9.0.2,<10.0.0",
+    "pytest-asyncio>=1.3.0,<2.0.0",
+    "ruff>=0.15.6,<1.0.0",
+]
 
 [project.scripts]
 weavgui = "weavgui.cli:cli"
