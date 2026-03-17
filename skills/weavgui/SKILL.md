@@ -24,14 +24,9 @@ weavgui --version
 
 ## Auto-Screenshot Behavior
 
-Every action command automatically captures a screenshot to **`screenshot.png`** in the current working directory after a short delay. You never need to pass output paths or screenshot flags.
+Every action command automatically captures a screenshot to **`screenshot.png`** in the current working directory.
 
-| Command | Auto-screenshot delay |
-|---|---|
-| `screenshot` | immediate |
-| `mouse move`, `mouse moveto` | 500 ms |
-| `mouse click`, `doubleclick`, `rightclick` | 2 s |
-| `keystroke` | 1 s |
+For workflow purposes, treat `screenshot.png` as ready immediately when each command exits; do not add extra waiting steps.
 
 After each command, read `screenshot.png` as an image to observe the current state of the screen.
 
@@ -82,7 +77,7 @@ The command also prints the current mouse position in normalized coordinates to 
 weavgui mouse move '(dx,dy)'
 ```
 
-Moves the mouse by a **relative delta** in normalized coordinates. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the valid range `[0.0, 1.0)`. Prints the start position, end position, and delta to stdout. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
+Moves the mouse by a **relative delta** in normalized coordinates. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the valid range `[0.0, 1.0)`. Prints the start position, end position, and delta to stdout. Automatically saves a screenshot to `screenshot.png`.
 
 ### Mouse Move To
 
@@ -90,7 +85,7 @@ Moves the mouse by a **relative delta** in normalized coordinates. The argument 
 weavgui mouse moveto '(x,y)'
 ```
 
-Moves the mouse to an **absolute normalized position**. Fails if the position is outside the valid range `[0.0, 1.0)`. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
+Moves the mouse to an **absolute normalized position**. Fails if the position is outside the valid range `[0.0, 1.0)`. Automatically saves a screenshot to `screenshot.png`.
 
 ### Mouse Click
 
@@ -100,7 +95,7 @@ weavgui mouse doubleclick   # double left click
 weavgui mouse rightclick    # right click
 ```
 
-All clicks happen at the **current cursor position**. A screenshot is automatically saved to `screenshot.png` after a 2 s delay to allow the UI to settle.
+All clicks happen at the **current cursor position**. A screenshot is automatically saved to `screenshot.png`.
 
 ### Keystroke
 
@@ -110,7 +105,7 @@ weavgui keystroke <keys>
 
 Examples: `c`, `ctrl+c`, `command+c`, `shift+a`, `command+z`
 
-A screenshot is automatically saved to `screenshot.png` after a 1 s delay.
+A screenshot is automatically saved to `screenshot.png`.
 
 ### Pasteboard
 
@@ -124,6 +119,16 @@ weavgui pasteboard read              # read from clipboard
 ## Critical Workflow: Precise Mouse Positioning
 
 **Never guess a target coordinate and click immediately.**
+**Never perform a blind click.**
+
+Before any click action (`click`, `doubleclick`, `rightclick`), require a **move-then-verify confirmation** that the cursor is truly on target. This avoids false assumptions where the pointer did not move exactly as expected.
+
+Minimum confirmation standard:
+
+- After every mouse move, the auto-screenshot is already written when the command exits; read `screenshot.png` immediately.
+- Verify from that screenshot that the crosshair center is on the target.
+- Never click immediately after a move command without loading and analyzing the auto-screenshot first.
+- If verification is uncertain, do **not** click. Continue the move-and-verify loop.
 
 `mouse move` accepts relative deltas; `mouse moveto` accepts absolute coordinates — both in normalized form `(0.0–1.0)`. The correct approach is an **iterative positioning loop**:
 
@@ -153,17 +158,18 @@ screenshot → analyze image → move mouse → (auto-screenshot) → analyze im
    weavgui mouse move '(dx,dy)'
    ```
 
-   A screenshot is saved to `screenshot.png` automatically after 500 ms. Read it immediately.
+   When `mouse move` exits, its auto-screenshot is already available at `screenshot.png`. Read it immediately.
 
 4. **Verify position**: Check that the crosshair (red lines) is now centered on the target. If not, repeat from step 2 with a corrected delta.
 
-5. **Click only when the cursor is confirmed on-target**:
+5. **Click only after the post-move screenshot is loaded and verified (no blind click)**:
 
    ```bash
+   # after mouse move, read auto-captured screenshot.png and verify target alignment
    weavgui mouse click
    ```
 
-   A screenshot is saved automatically after 2 s. Read it to confirm the action took effect.
+   When `mouse click` exits, its auto-screenshot is already available at `screenshot.png`. Read it to confirm the action took effect.
 
 ### Why this loop matters
 
@@ -180,11 +186,11 @@ weavgui screenshot
 # → read screenshot.png, observe crosshair at (0.2604, 0.3704), Submit button at approx (0.3750, 0.5648)
 # → estimate dx=0.1146, dy=0.1944
 
-# Step 2: move toward target (auto-screenshots after 500 ms)
+# Step 2: move toward target (auto-screenshot is ready when command exits)
 weavgui mouse move '(0.1146,0.1944)'
 # → read screenshot.png, crosshair now at (0.3750, 0.5630) — close enough
 
-# Step 3: click (auto-screenshots after 2 s)
+# Step 3: click (auto-screenshot is ready when command exits)
 weavgui mouse click
 # → read screenshot.png to confirm the click took effect
 ```
@@ -212,9 +218,9 @@ Workflow:
 1. Run `weavgui screenshot`, then read screenshot.png as an image.
 2. Identify the "Submit" button. Read the crosshair position from stdout.
 3. Estimate (dx, dy) from the crosshair to the button center, run `weavgui mouse move '(dx,dy)'`.
-4. Read screenshot.png (auto-captured after 500 ms), verify the crosshair is on the button. Adjust if needed.
+4. Read `screenshot.png` right after command exit, verify the crosshair is on the button. Adjust if needed.
 5. Run `weavgui mouse click`.
-6. Read screenshot.png (auto-captured after 2 s) to confirm the click took effect.
+6. Read `screenshot.png` right after command exit to confirm the click took effect.
 
 Return a summary of what happened and the final mouse position.
 ```
@@ -254,5 +260,6 @@ weavgui keystroke command+v
 
 - Every action command auto-captures `screenshot.png` — always read it after each command to observe the result.
 - Always prefer the **iterative screenshot loop** over single-shot coordinate estimation.
-- After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), the auto-screenshot is taken automatically after 1 s — read `screenshot.png` before proceeding.
+- Never blind-click: after any mouse move, always read and analyze the auto-screenshot before any click.
+- After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), read `screenshot.png` immediately after command exit before proceeding.
 - The stdout output of every command includes the current mouse position in normalized coordinates — use this as a precise anchor for the next delta calculation.
