@@ -41,9 +41,12 @@ After each command, read `screenshot.png` as an image to observe the current sta
 
 All mouse and screenshot commands share the same coordinate space:
 
-- Origin `(0, 0)` is the **top-left** of the primary display
+- **Normalized coordinates**: values range from `0.0` to `1.0`
+- Origin `(0.0, 0.0)` is the **top-left** of the primary display
+- Bottom-right is `(1.0, 1.0)`
 - `x` increases to the right, `y` increases downward
-- Coordinates are **logical pixels** (on macOS Retina, screenshots are auto-downscaled to match)
+- `x` is a fraction of screen width, `y` is a fraction of screen height
+- Single-display only (primary monitor)
 
 ---
 
@@ -58,20 +61,20 @@ weavgui screenshot
 Always saves to `screenshot.png` in the current working directory. Always draws cursor markers:
 
 - Red crosshair lines
-- Red small box (100×100 px, radius 50)
-- Green medium box (200×200 px, radius 100)
-- Blue large box (600×600 px, radius 300)
+- Red small box (normalized radius 0.03)
+- Green medium box (normalized radius 0.07)
+- Blue large box (normalized radius 0.20)
 
 The three concentric boxes are **positioning references** — use them to gauge how far to move the mouse next:
 
 | Target location | Delta range |
 |---|---|
-| Inside red box | Fine: `±50 px` |
-| Between red and green | Medium: `±50–100 px` |
-| Between green and blue | Coarse: `±100–300 px` |
+| Inside red box | Fine: `±0.03` |
+| Between red and green | Medium: `±0.03–0.07` |
+| Between green and blue | Coarse: `±0.07–0.20` |
 | Outside blue box | Large move — estimate from full screenshot |
 
-The command also prints the current mouse coordinates and display bounds to stdout.
+The command also prints the current mouse position in normalized coordinates to stdout.
 
 ### Mouse Move
 
@@ -79,7 +82,7 @@ The command also prints the current mouse coordinates and display bounds to stdo
 weavgui mouse move '(dx,dy)'
 ```
 
-Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the display bounds. Prints the start position, end position, and display bounds to stdout. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
+Moves the mouse by a **relative delta** in normalized coordinates. The argument uses `(dx,dy)` format — negative values work naturally. Fails if the target would leave the valid range `[0.0, 1.0)`. Prints the start position, end position, and delta to stdout. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
 
 ### Mouse Move To
 
@@ -87,7 +90,7 @@ Moves the mouse by a **relative delta**. The argument uses `(dx,dy)` format — 
 weavgui mouse moveto '(x,y)'
 ```
 
-Moves the mouse to an **absolute position**. Fails if the position is outside the display bounds. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
+Moves the mouse to an **absolute normalized position**. Fails if the position is outside the valid range `[0.0, 1.0)`. Automatically saves a screenshot to `screenshot.png` after a 500 ms delay.
 
 ### Mouse Click
 
@@ -122,7 +125,7 @@ weavgui pasteboard read              # read from clipboard
 
 **Never guess a target coordinate and click immediately.**
 
-`mouse move` accepts only relative deltas; `mouse moveto` accepts absolute coordinates but you still need to know the target pixel position. The correct approach is an **iterative positioning loop**:
+`mouse move` accepts relative deltas; `mouse moveto` accepts absolute coordinates — both in normalized form `(0.0–1.0)`. The correct approach is an **iterative positioning loop**:
 
 ```
 screenshot → analyze image → move mouse → (auto-screenshot) → analyze image → move mouse → ... → click
@@ -139,9 +142,9 @@ screenshot → analyze image → move mouse → (auto-screenshot) → analyze im
    Then read `screenshot.png` as an image attachment.
 
 2. **Analyze the screenshot**: Identify the target UI element. Read the cursor marker position from the stdout output (printed automatically). Use the three reference boxes to gauge your delta:
-   - Target inside the **red box** (radius 50) → fine delta, within `±50 px`
-   - Target inside the **green box** (radius 100) → medium delta, within `±100 px`
-   - Target inside the **blue box** (radius 300) → coarse delta, within `±300 px`
+   - Target inside the **red box** (radius 0.03) → fine delta, within `±0.03`
+   - Target inside the **green box** (radius 0.07) → medium delta, within `±0.07`
+   - Target inside the **blue box** (radius 0.20) → coarse delta, within `±0.20`
    - Target outside the **blue box** → large move, estimate from the full screenshot
 
 3. **Move the mouse**:
@@ -164,7 +167,7 @@ screenshot → analyze image → move mouse → (auto-screenshot) → analyze im
 
 ### Why this loop matters
 
-- Even with `mouse moveto`, you need the exact target pixel coordinate — which requires a screenshot to determine.
+- Even with `mouse moveto`, you need to know the target's normalized position — which requires a screenshot to determine.
 - Screen content, window positions, and scroll state can all shift between steps.
 - Even a single iteration of screenshot → analyze → move can land the cursor accurately.
 - For high-precision targets (small buttons, text fields), two or three iterations are typical.
@@ -174,12 +177,12 @@ screenshot → analyze image → move mouse → (auto-screenshot) → analyze im
 ```bash
 # Step 1: initial screenshot
 weavgui screenshot
-# → read screenshot.png, observe crosshair at (500, 400), Submit button at approx (720, 610)
-# → estimate dx=220, dy=210
+# → read screenshot.png, observe crosshair at (0.2604, 0.3704), Submit button at approx (0.3750, 0.5648)
+# → estimate dx=0.1146, dy=0.1944
 
 # Step 2: move toward target (auto-screenshots after 500 ms)
-weavgui mouse move '(220,210)'
-# → read screenshot.png, crosshair now at (720, 608) — close enough
+weavgui mouse move '(0.1146,0.1944)'
+# → read screenshot.png, crosshair now at (0.3750, 0.5630) — close enough
 
 # Step 3: click (auto-screenshots after 2 s)
 weavgui mouse click
@@ -252,4 +255,4 @@ weavgui keystroke command+v
 - Every action command auto-captures `screenshot.png` — always read it after each command to observe the result.
 - Always prefer the **iterative screenshot loop** over single-shot coordinate estimation.
 - After any keyboard shortcut that changes screen state (e.g. `command+z`, `return`), the auto-screenshot is taken automatically after 1 s — read `screenshot.png` before proceeding.
-- The stdout output of every command includes the current mouse position — use this as a precise anchor for the next delta calculation.
+- The stdout output of every command includes the current mouse position in normalized coordinates — use this as a precise anchor for the next delta calculation.

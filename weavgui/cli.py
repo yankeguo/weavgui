@@ -59,7 +59,7 @@ def mouse_group() -> None:
 @mouse_group.command("move")
 @click.argument("delta", type=str)
 def mouse_move_command(delta: str) -> None:
-    """Move mouse cursor by relative delta, e.g. '(100,-50)'.
+    """Move mouse cursor by relative delta in normalized coordinates, e.g. '(0.1,-0.05)'.
 
     A screenshot is automatically captured to screenshot.png after a 500 ms delay.
     """
@@ -75,7 +75,7 @@ def mouse_move_command(delta: str) -> None:
 @mouse_group.command("moveto")
 @click.argument("position", type=str)
 def mouse_moveto_command(position: str) -> None:
-    """Move mouse cursor to absolute position, e.g. '(500,300)'.
+    """Move mouse cursor to absolute normalized position, e.g. '(0.5,0.3)'.
 
     A screenshot is automatically captured to screenshot.png after a 500 ms delay.
     """

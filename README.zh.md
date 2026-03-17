@@ -37,8 +37,8 @@ uv tool upgrade weavgui
 ```bash
 weavgui --version
 weavgui screenshot
-weavgui mouse move '(100,100)'
-weavgui mouse moveto '(500,300)'
+weavgui mouse move '(0.05,0.05)'
+weavgui mouse moveto '(0.5,0.3)'
 weavgui mouse click
 weavgui pasteboard write hello world
 weavgui pasteboard read
@@ -60,13 +60,13 @@ weavgui keystroke command+c
 
 ## 坐标系
 
-鼠标与截图相关命令使用同一套坐标约定：
+鼠标与截图相关命令使用**归一化坐标**：
 
-- 主显示器逻辑坐标（像素）
-- 原点在左上角：`(0, 0)`
-- `x` 向右递增，`y` 向下递增
+- 取值范围 `0.0` 到 `1.0`
+- 原点在左上角：`(0.0, 0.0)`，右下角为 `(1.0, 1.0)`
+- `x` 向右递增（屏幕宽度的比例），`y` 向下递增（屏幕高度的比例）
 - 仅支持主显示器（单显示器）
-- 在 macOS Retina 上，截图会缩放为逻辑分辨率，使像素坐标与鼠标坐标一致
+- 与分辨率无关：相同的坐标在任何屏幕尺寸和 DPI 下都有效
 
 ## 命令参考
 
@@ -88,42 +88,42 @@ weavgui screenshot
 光标位置始终会被标注：
 
 - 红色十字准心贯穿整张截图
-- 以光标为中心的红色小框（`100×100 px`，半径 50）
-- 以光标为中心的绿色中框（`200×200 px`，半径 100）
-- 以光标为中心的蓝色大框（`600×600 px`，半径 300）
+- 以光标为中心的红色小框（归一化半径 0.03）
+- 以光标为中心的绿色中框（归一化半径 0.07）
+- 以光标为中心的蓝色大框（归一化半径 0.20）
 
 三个框作为下一次 `mouse move` / `mouse moveto` 的**定位参考**：
 
 | 目标位置 | 建议偏移范围 |
 |---|---|
-| 红色框内 | 微调，`±50 px` |
-| 红绿框之间 | 中等调整，`±50–100 px` |
-| 绿蓝框之间 | 粗调，`±100–300 px` |
+| 红色框内 | 微调，`±0.03` |
+| 红绿框之间 | 中等调整，`±0.03–0.07` |
+| 绿蓝框之间 | 粗调，`±0.07–0.20` |
 | 蓝色框外 | 需要较大移动，根据整张截图估算 |
 
 ```bash
 weavgui screenshot
 # → 保存带光标标记的 screenshot.png
-# → 将光标位置和显示器边界输出到 stdout
+# → 将光标归一化坐标输出到 stdout
 ```
 
 ### `mouse`
 
 #### `mouse move '(dx,dy)'`
 
-按相对像素偏移移动光标。参数格式为 `(dx,dy)`。若目标位置超出主显示器边界则失败。移动后等待 500 ms 并将截图保存到 `screenshot.png`。
+按归一化相对偏移移动光标。参数格式为 `(dx,dy)`。若目标位置超出有效范围 `[0.0, 1.0)` 则失败。移动后等待 500 ms 并将截图保存到 `screenshot.png`。
 
 ```bash
-weavgui mouse move '(100,100)'
-weavgui mouse move '(-100,50)'
+weavgui mouse move '(0.05,0.05)'
+weavgui mouse move '(-0.05,0.03)'
 ```
 
 #### `mouse moveto '(x,y)'`
 
-将光标移动到绝对坐标。参数格式为 `(x,y)`。若坐标超出主显示器边界则失败。移动后等待 500 ms 并将截图保存到 `screenshot.png`。
+将光标移动到归一化绝对坐标。参数格式为 `(x,y)`。若坐标超出有效范围 `[0.0, 1.0)` 则失败。移动后等待 500 ms 并将截图保存到 `screenshot.png`。
 
 ```bash
-weavgui mouse moveto '(500,300)'
+weavgui mouse moveto '(0.5,0.3)'
 ```
 
 #### `mouse click`

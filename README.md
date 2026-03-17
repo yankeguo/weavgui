@@ -37,8 +37,8 @@ uv tool upgrade weavgui
 ```bash
 weavgui --version
 weavgui screenshot
-weavgui mouse move '(100,100)'
-weavgui mouse moveto '(500,300)'
+weavgui mouse move '(0.05,0.05)'
+weavgui mouse moveto '(0.5,0.3)'
 weavgui mouse click
 weavgui pasteboard write hello world
 weavgui pasteboard read
@@ -60,13 +60,13 @@ The screenshot always includes cursor markers (crosshair + reference boxes). Rea
 
 ## Coordinate System
 
-Mouse and screenshot-related commands share the same coordinate convention:
+Mouse and screenshot-related commands use **normalized coordinates**:
 
-- Primary-display logical coordinates (pixels)
-- Origin at top-left: `(0, 0)`
-- `x` increases to the right, `y` increases downward
+- Values range from `0.0` to `1.0`
+- Origin at top-left: `(0.0, 0.0)`, bottom-right: `(1.0, 1.0)`
+- `x` increases to the right (fraction of screen width), `y` increases downward (fraction of screen height)
 - Single-display only (primary monitor)
-- On macOS Retina, screenshots are downscaled to logical resolution so that pixel coordinates match mouse coordinates
+- Resolution-independent: the same coordinates work regardless of screen size or DPI
 
 ## Command Reference
 
@@ -88,42 +88,42 @@ weavgui screenshot
 The cursor position is always annotated:
 
 - Red crosshair spanning the full screenshot
-- Red small box centered on cursor (`100×100 px`, radius 50)
-- Green medium box centered on cursor (`200×200 px`, radius 100)
-- Blue large box centered on cursor (`600×600 px`, radius 300)
+- Red small box centered on cursor (normalized radius 0.03)
+- Green medium box centered on cursor (normalized radius 0.07)
+- Blue large box centered on cursor (normalized radius 0.20)
 
 The three boxes serve as **positioning references** for the next `mouse move` / `mouse moveto` command:
 
 | Target location | Suggested delta range |
 |---|---|
-| Inside the red box | Fine adjustment, `±50 px` |
-| Between red and green boxes | Medium adjustment, `±50–100 px` |
-| Between green and blue boxes | Coarse adjustment, `±100–300 px` |
+| Inside the red box | Fine adjustment, `±0.03` |
+| Between red and green boxes | Medium adjustment, `±0.03–0.07` |
+| Between green and blue boxes | Coarse adjustment, `±0.07–0.20` |
 | Outside the blue box | Large move needed — estimate from the full screenshot |
 
 ```bash
 weavgui screenshot
 # → saves screenshot.png with cursor markers
-# → prints cursor position and display bounds to stdout
+# → prints cursor position in normalized coordinates to stdout
 ```
 
 ### `mouse`
 
 #### `mouse move '(dx,dy)'`
 
-Move the cursor by a relative pixel delta. The argument uses `(dx,dy)` format. Fails if the target position would leave the primary display bounds. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
+Move the cursor by a relative delta in normalized coordinates. The argument uses `(dx,dy)` format. Fails if the target position would leave the valid range `[0.0, 1.0)`. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
 
 ```bash
-weavgui mouse move '(100,100)'
-weavgui mouse move '(-100,50)'
+weavgui mouse move '(0.05,0.05)'
+weavgui mouse move '(-0.05,0.03)'
 ```
 
 #### `mouse moveto '(x,y)'`
 
-Move the cursor to an absolute position. The argument uses `(x,y)` format. Fails if the position is outside the primary display bounds. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
+Move the cursor to an absolute normalized position. The argument uses `(x,y)` format. Fails if the position is outside the valid range `[0.0, 1.0)`. After moving, waits 500 ms and saves a screenshot to `screenshot.png`.
 
 ```bash
-weavgui mouse moveto '(500,300)'
+weavgui mouse moveto '(0.5,0.3)'
 ```
 
 #### `mouse click`

@@ -8,26 +8,31 @@ from .utils import coordinate_system_lines
 __all__ = ["move", "move_to", "left_click", "double_click", "right_click"]
 
 
-def move(dx: int, dy: int) -> None:
+def move(dx: float, dy: float) -> None:
     try:
-        current = pyautogui.position()
-        start_x = int(current.x)
-        start_y = int(current.y)
-        target_x = start_x + int(dx)
-        target_y = start_y + int(dy)
+        width, height = _get_screen_size()
 
-        width, height = _validate_target(target_x, target_y)
-        pyautogui.moveTo(target_x, target_y)
+        current = pyautogui.position()
+        start_nx = current.x / width
+        start_ny = current.y / height
+
+        target_nx = start_nx + dx
+        target_ny = start_ny + dy
+
+        _validate_normalized(target_nx, target_ny)
+
+        pixel_x = round(target_nx * width)
+        pixel_y = round(target_ny * height)
+        pyautogui.moveTo(pixel_x, pixel_y)
 
         click.echo(
             "\n".join(
                 [
                     "Mouse move details:",
                     *coordinate_system_lines(),
-                    f"- Start position: ({start_x}, {start_y}).",
-                    f"- Relative delta: (dx={dx}, dy={dy}).",
-                    f"- End position: ({target_x}, {target_y}).",
-                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
+                    f"- Start position: ({start_nx:.4f}, {start_ny:.4f}).",
+                    f"- Relative delta: (dx={dx:.4f}, dy={dy:.4f}).",
+                    f"- End position: ({target_nx:.4f}, {target_ny:.4f}).",
                 ]
             )
         )
@@ -37,18 +42,21 @@ def move(dx: int, dy: int) -> None:
         raise click.ClickException(f"Failed to move mouse: {exc}") from exc
 
 
-def move_to(x: int, y: int) -> None:
+def move_to(x: float, y: float) -> None:
     try:
-        width, height = _validate_target(x, y)
-        pyautogui.moveTo(x, y)
+        _validate_normalized(x, y)
+
+        width, height = _get_screen_size()
+        pixel_x = round(x * width)
+        pixel_y = round(y * height)
+        pyautogui.moveTo(pixel_x, pixel_y)
 
         click.echo(
             "\n".join(
                 [
                     "Mouse moveto details:",
                     *coordinate_system_lines(),
-                    f"- Target position: ({x}, {y}).",
-                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
+                    f"- Target position: ({x:.4f}, {y:.4f}).",
                 ]
             )
         )
@@ -72,7 +80,11 @@ def right_click() -> None:
 
 def _do_click(action_name: str, button: str, is_double: bool) -> None:
     try:
-        x, y, width, height = _current_position_with_bounds()
+        width, height = _get_screen_size()
+        current = pyautogui.position()
+        nx = current.x / width
+        ny = current.y / height
+
         if is_double:
             pyautogui.doubleClick(button=button)
         else:
@@ -83,9 +95,8 @@ def _do_click(action_name: str, button: str, is_double: bool) -> None:
                 [
                     f"Mouse {action_name} details:",
                     *coordinate_system_lines(),
-                    f"- Action position: ({x}, {y}).",
+                    f"- Action position: ({nx:.4f}, {ny:.4f}).",
                     f"- Button: {button}.",
-                    f"- Display bounds: x:[0,{width - 1}], y:[0,{height - 1}].",
                 ]
             )
         )
@@ -95,26 +106,18 @@ def _do_click(action_name: str, button: str, is_double: bool) -> None:
         raise click.ClickException(f"Failed to execute mouse {action_name}: {exc}") from exc
 
 
-def _validate_target(target_x: int, target_y: int) -> tuple[int, int]:
+def _get_screen_size() -> tuple[int, int]:
     screen_size = pyautogui.size()
     width = int(screen_size.width)
     height = int(screen_size.height)
     if width <= 0 or height <= 0:
         raise click.ClickException("Failed to read primary display size.")
-
-    if target_x < 0 or target_y < 0 or target_x >= width or target_y >= height:
-        raise click.ClickException(
-            "Target position is out of bounds for primary display logical coordinates: "
-            f"target=({target_x}, {target_y}), "
-            f"bounds=x:[0,{width - 1}], y:[0,{height - 1}]."
-        )
-
     return width, height
 
 
-def _current_position_with_bounds() -> tuple[int, int, int, int]:
-    current = pyautogui.position()
-    x = int(current.x)
-    y = int(current.y)
-    width, height = _validate_target(x, y)
-    return x, y, width, height
+def _validate_normalized(x: float, y: float) -> None:
+    if x < 0.0 or x >= 1.0 or y < 0.0 or y >= 1.0:
+        raise click.ClickException(
+            "Target position is out of bounds for normalized coordinates: "
+            f"target=({x:.4f}, {y:.4f}), valid range=[0.0, 1.0)."
+        )
